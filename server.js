@@ -1,3 +1,10 @@
+const io = socketIo(server, {
+  cors: {
+    origin: ["https://chat-app-9xnr.onrender.com"],
+    methods: ["GET", "POST"]
+  }
+});
+
 const express = require('express');
 const socketIo = require('socket.io');
 const http = require('http');
