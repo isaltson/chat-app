@@ -1,17 +1,18 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simple Chat App</title>
   <link rel="stylesheet" href="style.css">
+
+  </style>
 </head>
 <body>
   <div class="container">
     <h1>Chat App</h1>
     <div id="login">
       <input id="username-input" placeholder="Enter username">
-      <button id= "join-button">Join Chat</button>
+      <button id="join-button">Join Chat</button>
     </div>
     <div id="chat" style="display: none;">
       <div id="online-users">
@@ -21,7 +22,7 @@
       <div id="typing-indicator" style="color: #666; font-style: italic;"></div>
       <div id="messages"></div>
       <input id="message-input" placeholder="Type a message">
-      <button id= "join-button">Send</button>
+      <button id="send-button">Send</button>
     </div>
   </div>
   <script src="/socket.io/socket.io.js"></script>
