@@ -128,3 +128,8 @@ socket.on('update-users', (users) => {
     </li>`
   ).join('');
 });
+
+// Add this at the bottom of your script
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('join-button').addEventListener('click', setUsername);
+});
