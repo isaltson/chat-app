@@ -1,13 +1,12 @@
-const socket = io();
+const socket = io({
+  transports: ['websocket'], // Force WebSocket
+  upgrade: false
+});
 let currentUser;
 let selectedUser;
 
 // Debug connection
 
-const socket = io({
-  transports: ['websocket'], // Force WebSocket
-  upgrade: false
-});
 socket.on('connect', () => {
   console.log('Connected to server with socket ID:', socket.id);
 });
