@@ -1,32 +1,49 @@
-const io = socketIo(server, {
-  cors: {
-    origin: ["https://chat-app-9xnr.onrender.com"],
-    methods: ["GET", "POST"]
-  }
-});
-
 const express = require('express');
 const socketIo = require('socket.io');
 const http = require('http');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+
+// Initialize Socket.io with production/development config
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.NODE_ENV === 'production' 
+      ? ['https://chat-app-9xnr.onrender.com'] 
+      : ['http://localhost:3000'],
+    methods: ['GET', 'POST']
+  }
+});
 
 // Data structures
-const users = new Map();       // username → Set(socketIds)
-const conversations = new Map(); // username → { withUser: string, messages: [...] }[]
-const notifications = new Map(); // username → Set(senders)
+const users = new Map();          // username → Set(socketIds)
+const conversations = new Map();  // username → { withUser: string, messages: [...] }[]
+const notifications = new Map();  // username → Set(senders)
 
+// Middleware
 app.use(express.static('client'));
 
-// Helper function to broadcast user list
+// Helper functions
 function broadcastUserList() {
   const userList = Array.from(users.keys());
   io.emit('update-users', userList);
-  console.log('Broadcasting user list:', userList);
 }
 
+function storeMessage(user, withUser, text, isSender) {
+  let conversation = conversations.get(user).find(c => c.withUser === withUser);
+  if (!conversation) {
+    conversation = { withUser, messages: [] };
+    conversations.get(user).push(conversation);
+  }
+  conversation.messages.push({
+    from: isSender ? 'you' : withUser,
+    text,
+    timestamp: new Date(),
+    read: isSender
+  });
+}
+
+// Socket.io connection handler
 io.on('connection', (socket) => {
   console.log('New connection:', socket.id);
 
@@ -34,139 +51,101 @@ io.on('connection', (socket) => {
   socket.on('set-username', (username) => {
     if (!username) return;
 
-    // Initialize user data structures
+    // Initialize user data
     if (!users.has(username)) {
       users.set(username, new Set());
       conversations.set(username, []);
       notifications.set(username, new Set());
     }
-    
-    // Add connection to user
+
     users.get(username).add(socket.id);
     console.log(`${username} connected (${socket.id})`);
     
-    // Broadcast updated user list
     broadcastUserList();
-    
-    // Send existing notifications
     socket.emit('update-notifications', Array.from(notifications.get(username)));
   });
 
-  // Send message
-  // Update send-message handler
-socket.on('send-message', ({ to, text }) => {
-  const from = [...users.entries()]
-    .find(([_, sockets]) => sockets.has(socket.id))?.[0];
+  // Handle messages
+  socket.on('send-message', ({ to, text }) => {
+    const from = [...users.entries()].find(([_, sockets]) => sockets.has(socket.id))?.[0];
+    if (!from || !users.has(to)) return;
 
-  if (!from || !users.has(to)) return;
+    console.log(`Message from ${from} to ${to}: ${text}`);
 
-  // Store messages
-  storeMessage(from, to, text, true);  // Sender copy
-  storeMessage(to, from, text, false); // Receiver copy
+    // Store messages for both parties
+    storeMessage(from, to, text, true);
+    storeMessage(to, from, text, false);
 
-  // Notify both parties
-  const notifySockets = [
-    ...users.get(from), // Send to sender's all devices
-    ...users.get(to)    // Send to receiver's all devices
-  ];
+    // Add notification
+    notifications.get(to).add(from);
+    io.to([...users.get(to)]).emit('update-notifications', Array.from(notifications.get(to)));
 
-  notifySockets.forEach(socketId => {
-    io.to(socketId).emit('receive-message', { 
-      from: from, 
-      text: text 
+    // Deliver message to all connected devices of both users
+    const allRecipients = new Set([...users.get(from), ...users.get(to)]);
+    allRecipients.forEach(socketId => {
+      io.to(socketId).emit('receive-message', { 
+        from, 
+        text,
+        isCurrentUser: socketId === socket.id
+      });
     });
-  });
-
-  // Update notifications
-  notifications.get(to).add(from);
-  io.to([...users.get(to)]).emit('update-notifications', Array.from(notifications.get(to)));
-});
-    // Deliver real-time message only if recipient is viewing this chat
-    const recipientSockets = users.get(to);
-    recipientSockets.forEach(socketId => {
-      io.to(socketId).emit('potential-message', { from, text });
-    });
- 
-
-  // Store message in conversation history
-  function storeMessage(user, withUser, text, isSender) {
-    let conv = conversations.get(user).find(c => c.withUser === withUser);
-    if (!conv) {
-      conv = { withUser, messages: [] };
-      conversations.get(user).push(conv);
-    }
-    conv.messages.push({
-      from: isSender ? 'you' : withUser,
-      text,
-      timestamp: new Date(),
-      read: isSender
-    });
-  }
-   
-  socket.on('typing', ({ to, isTyping }) => {
-    const from = [...users.entries()]
-      .find(([_, sockets]) => sockets.has(socket.id))?.[0];
-    
-    if (from && users.has(to)) {
-      io.to([...users.get(to)]).emit('typing', { from, isTyping });
-    }
   });
 
   // Get conversation history
   socket.on('get-conversation', (withUser) => {
-    const currentUser = [...users.entries()]
-      .find(([_, sockets]) => sockets.has(socket.id))?.[0];
-    
+    const currentUser = [...users.entries()].find(([_, sockets]) => sockets.has(socket.id))?.[0];
     if (!currentUser) return;
 
-    // Find or create conversation
-    let conv = conversations.get(currentUser).find(c => c.withUser === withUser);
-    if (!conv) {
-      conv = { withUser, messages: [] };
-      conversations.get(currentUser).push(conv);
-    }
+    const conversation = conversations.get(currentUser).find(c => c.withUser === withUser) || 
+                        { withUser, messages: [] };
 
     // Mark messages as read
-    conv.messages.forEach(msg => {
+    conversation.messages.forEach(msg => {
       if (msg.from === withUser) msg.read = true;
     });
 
-    // Clear notifications
+    // Clear notification
     notifications.get(currentUser).delete(withUser);
     io.to([...users.get(currentUser)]).emit('update-notifications', Array.from(notifications.get(currentUser)));
 
-    socket.emit('show-conversation', { 
-      with: withUser, 
-      messages: conv.messages.map(msg => ({
+    socket.emit('show-conversation', {
+      with: withUser,
+      messages: conversation.messages.map(msg => ({
         ...msg,
         from: msg.from === 'you' ? currentUser : msg.from
       }))
     });
   });
 
-  // Cleanup on disconnect
-  socket.on('disconnect', () => {
-    const userEntry = [...users.entries()]
-      .find(([_, sockets]) => sockets.has(socket.id));
-    
-    if (userEntry) {
-      const [username, sockets] = userEntry;
-      sockets.delete(socket.id);
-      console.log(`${username} disconnected (${socket.id})`);
-
-      // Remove user data when last connection closes
-      if (sockets.size === 0) {
-        users.delete(username);
-        conversations.delete(username);
-        notifications.delete(username);
-      }
-
-      // Broadcast updated user list
-      broadcastUserList();
+  // Typing indicator
+  socket.on('typing', ({ to, isTyping }) => {
+    const from = [...users.entries()].find(([_, sockets]) => sockets.has(socket.id))?.[0];
+    if (from && users.has(to)) {
+      io.to([...users.get(to)]).emit('typing', { from, isTyping });
     }
+  });
+
+  // Disconnect handler
+  socket.on('disconnect', () => {
+    const userEntry = [...users.entries()].find(([_, sockets]) => sockets.has(socket.id));
+    if (!userEntry) return;
+
+    const [username, sockets] = userEntry;
+    sockets.delete(socket.id);
+    console.log(`${username} disconnected (${socket.id})`);
+
+    if (sockets.size === 0) {
+      users.delete(username);
+      conversations.delete(username);
+      notifications.delete(username);
+    }
+
+    broadcastUserList();
   });
 });
 
-server.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
+// Start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
