@@ -1,0 +1,65 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #f4f4f9;
+}
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+#online-users {
+  float: left;
+  width: 30%;
+}
+#messages {
+  float: right;
+  width: 65%;
+  height: 300px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  overflow-y: scroll;
+}
+input, button {
+  padding: 8px;
+  margin: 5px 0;
+}
+
+.user-item {
+  cursor: pointer;
+  padding: 8px;
+  margin: 4px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.user-item:hover {
+  background: #f0f0f0;
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  background: #ff4757;
+  border-radius: 50%;
+  display: none;
+}
+
+.username {
+  flex-grow: 1;
+}
+
+#messages {
+  min-height: 300px;
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  overflow-y: auto;
+  background: #f9f9f9;
+}
