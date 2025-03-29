@@ -87,13 +87,22 @@ function selectUser(user) {
 }
 
 // Send message
-function sendMessage() {
+const sendMessage = () => {
   const text = document.getElementById('message-input').value.trim();
   if (text && selectedUser) {
-    socket.emit('send-message', { to: selectedUser, text });
+    console.log('Attempting to send:', { to: selectedUser, text });
+    socket.emit('send-message', { 
+      to: selectedUser, 
+      text 
+    });
     document.getElementById('message-input').value = '';
   }
-}
+};
+
+// Add event listener for send button
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('send-button').addEventListener('click', sendMessage);
+});
 
 // Receive message
 socket.on('receive-message', ({ from, text }) => {
