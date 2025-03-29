@@ -1,34 +1,110 @@
+/* style.css */
 body {
   font-family: Arial, sans-serif;
   margin: 0;
-  padding: 20px;
+  padding: 0;
   background: #f4f4f9;
 }
+
 .container {
-  max-width: 600px;
+  max-width: 100%;
+  height: 100vh;
   margin: 0 auto;
   background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-#online-users {
-  float: left;
-  width: 30%;
-}
-#messages {
-  float: right;
-  width: 65%;
-  height: 300px;
-  border: 1px solid #ddd;
-  padding: 10px;
-  overflow-y: scroll;
-}
-input, button {
-  padding: 8px;
-  margin: 5px 0;
+  display: flex;
+  flex-direction: column;
 }
 
+#login {
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+#chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#online-users {
+  width: 100%;
+  padding: 15px;
+  background: white;
+  border-bottom: 1px solid #ddd;
+}
+
+#messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background: #f9f9f9;
+}
+
+.input-container {
+  padding: 15px;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  gap: 10px;
+}
+
+#message-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+#send-button {
+  padding: 12px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
+
+/* Desktop Layout */
+@media (min-width: 768px) {
+  .container {
+    max-width: 1200px;
+    padding: 20px;
+    height: calc(100vh - 40px);
+  }
+
+  #chat {
+    flex-direction: row;
+  }
+
+  #online-users {
+    width: 250px;
+    border-right: 1px solid #ddd;
+    border-bottom: none;
+  }
+
+  #messages {
+    flex: 1;
+    height: calc(100vh - 160px);
+  }
+}
+
+/* Mobile Improvements */
+@media (max-width: 767px) {
+  #username-input, #message-input {
+    font-size: 16px; /* Prevent zoom on focus */
+  }
+
+  button {
+    padding: 12px 15px;
+  }
+
+  .user-item {
+    padding: 10px;
+  }
+}
+
+/* Keep your existing styles below */
 .user-item {
   cursor: pointer;
   padding: 8px;
@@ -53,13 +129,4 @@ input, button {
 
 .username {
   flex-grow: 1;
-}
-
-#messages {
-  min-height: 300px;
-  border: 1px solid #ddd;
-  padding: 10px;
-  margin-bottom: 10px;
-  overflow-y: auto;
-  background: #f9f9f9;
 }
