@@ -67,9 +67,15 @@ io.on('connection', (socket) => {
 
   // Handle messages
   socket.on('send-message', ({ to, text }) => {
-    const from = [...users.entries()].find(([_, sockets]) => sockets.has(socket.id))?.[0];
-    if (!from || !users.has(to)) return;
+  console.log('Received send-message event:', { to, text });
+  
+  const from = [...users.entries()]
+    .find(([_, sockets]) => sockets.has(socket.id))?.[0];
 
+  if (!from || !users.has(to)) {
+    console.log('Invalid message:', { from, to });
+    return;
+  }
     console.log(`Message from ${from} to ${to}: ${text}`);
 
     // Store messages for both parties
