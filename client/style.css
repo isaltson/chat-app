@@ -127,5 +127,8 @@ button {
   
   button {
     width: 80px;
+    color: white;
+    background-color: blue;
+    height: 55px;
   }
 }
