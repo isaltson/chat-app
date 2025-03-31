@@ -17,6 +17,7 @@ const chatState = {
 const elements = {
   login: document.getElementById('login'),
   chat: document.getElementById('chat'),
+    accessCode: document.getElementById('access-code'),
   usernameInput: document.getElementById('username-input'),
   joinButton: document.getElementById('join-button'),
   usersList: document.getElementById('users-list'),
@@ -34,6 +35,7 @@ function init() {
 
 // Event Listeners
 function setupEventListeners() {
+  elements.accessCode.addEventListener('input', verifyAccessCode);
   elements.joinButton.addEventListener('click', setUsername);
   elements.sendButton.addEventListener('click', sendMessage);
   elements.messageInput.addEventListener('keypress', (e) => {
@@ -42,6 +44,22 @@ function setupEventListeners() {
   elements.messageInput.addEventListener('input', handleTyping);
 }
 
+function verifyAccessCode() {
+  const CORRECT_CODE = "5920";
+  const code = elements.accessCode.value.trim();
+  
+  elements.accessCode.classList.remove('valid', 'invalid');
+  
+  if (code === CORRECT_CODE) {
+    elements.usernameInput.disabled = false;
+    elements.joinButton.disabled = false;
+    elements.accessCode.classList.add('valid');
+  } else if (code.length >= 4) {
+    elements.usernameInput.disabled = true;
+    elements.joinButton.disabled = true;
+    elements.accessCode.classList.add('invalid');
+  }
+}
 // Socket.io Events
 function setupSocketEvents() {
   socket.on('connect', () => {
@@ -61,14 +79,25 @@ function setupSocketEvents() {
 
 // Core Functions
 function setUsername() {
+  const code = elements.accessCode.value.trim();
+  if (code !== "5920") {
+    alert("Invalid access code!");
+    elements.accessCode.classList.add('invalid');
+    return;
+  }
+
   const username = elements.usernameInput.value.trim();
   if (!username) return;
 
   chatState.currentUser = username;
-  socket.emit('set-username', username);
+  socket.emit('set-username', { 
+    username,
+    accessCode: code 
+  });
   elements.login.style.display = 'none';
   elements.chat.style.display = 'block';
 }
+
 
 function sendMessage() {
   const text = elements.messageInput.value.trim();
