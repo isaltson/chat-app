@@ -2,33 +2,32 @@
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Simple Chat App</title>
+  <title>Secure Chat App</title>
   <link rel="stylesheet" href="style.css">
-
-  </style>
 </head>
 <body>
   <div class="container">
-  <h1>Chat App</h1>
-  <div id="login">
-    <input id="username-input" placeholder="Enter username">
-    <button id="join-button">Join Chat</button>
-  </div>
-  <div id="chat" style="display: none;">
-    <div id="online-users">
-      <h3>Online Users:</h3>
-      <ul id="users-list"></ul>
+    <h1>Secure Chat App</h1>
+    <div id="login">
+      <input id="access-code" type="password" placeholder="Enter access code">
+      <input id="username-input" placeholder="Enter username" disabled>
+      <button id="join-button" disabled>Join Chat</button>
     </div>
-    <div class="chat-main">
-      <div id="messages"></div>
-      <div id="typing-indicator"></div>
-      <div class="input-container">
-        <input id="message-input" placeholder="Type a message">
-        <button id="send-button">Send</button>
+    <div id="chat" style="display: none;">
+      <div id="online-users">
+        <h3>Online Users:</h3>
+        <ul id="users-list"></ul>
+      </div>
+      <div class="chat-main">
+        <div id="messages"></div>
+        <div id="typing-indicator"></div>
+        <div class="input-container">
+          <input id="message-input" placeholder="Type a message">
+          <button id="send-button">Send</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="script.js"></script>
 </body>
