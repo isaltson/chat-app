@@ -4,7 +4,7 @@ const http = require('http');
 
 const app = express();
 const server = http.createServer(app);
-const ACCESS_CODE = "5920";
+
 
 // Initialize Socket.io with production/development config
 const io = socketIo(server, {
