@@ -4,7 +4,6 @@ const http = require('http');
 
 const app = express();
 const server = http.createServer(app);
-const ACCESS_CODE = "5920";
 
 // Initialize Socket.io with production/development config
 const io = socketIo(server, {
@@ -49,12 +48,7 @@ io.on('connection', (socket) => {
   console.log('New connection:', socket.id);
 
   socket.on('set-username', (data) => {
-    if (!data || data.accessCode !== ACCESS_CODE) {
-      socket.emit('access-denied', 'Invalid access code');
-      socket.disconnect();
-      return;
-    }
-
+    // MODIFIED: Removed access code verification
     const username = data.username;
     if (!username) return;
 
@@ -70,7 +64,6 @@ io.on('connection', (socket) => {
     broadcastUserList();
     socket.emit('update-notifications', Array.from(notifications.get(username)));
   });
-
   // Handle messages
   socket.on('send-message', ({ to, text }) => {
   console.log('Received send-message event:', { to, text });
